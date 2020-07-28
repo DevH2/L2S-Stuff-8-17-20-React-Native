@@ -1,0 +1,189 @@
+import { StatusBar } from 'expo-status-bar';
+import React from 'react';
+import { GameEngine } from 'react-native-game-engine';
+import { StyleSheet, Text, View, AppRegistry, Image, TextInput, ImageBackground, TouchableHighlight, Alert, Dimensions, ScrollView, TouchableOpacity } from 'react-native';
+import Constants from 'expo-constants';
+let deviceHeight = Dimensions.get('window').height;
+let deviceWidth = Dimensions.get('window').width;
+export default class App extends React.Component {
+	state = {
+        menuScreen: 'block',
+        gameScreen: 'none',
+        infoScreen: 'none',
+    }
+    
+    handleMenuPress = () => this.setState(state => ({
+        menuScreen: 'block',
+        gameScreen: 'none',
+        infoScreen: 'none',
+    }));
+    handleGamePress = () => this.setState(state => ({
+        menuScreen: 'none',
+        gameScreen: 'block',
+        infoScreen: 'none',
+    }));
+    handleInfoPress = () => this.setState(state => ({
+        menuScreen: 'none',
+        gameScreen: 'none',
+        infoScreen: 'block',
+    }));
+	render() {
+		return (
+			<View style={styles.container}>
+				<Text>Open up App.js to start working on your app!</Text>
+				<StatusBar style="auto" />
+				<View style = {{display: this.state.menuScreen}}>
+                    <ImageBackground style = {{width: deviceWidth, height: deviceHeight}}
+                     source = {{uri: 'https://codehs.com/uploads/a39a9892b554ddd78871948d628ccdec'}}
+                    >
+                        <View>
+                            <View style = {styles.halfScreen}>
+                                <Text style = {styles.title1}>Leap</Text>
+                                <Text style = {styles.title2}>2</Text>
+                                <Text style = {styles.title1}>Space</Text>
+                            </View>
+                            <View style = {styles.halfScreen}>
+                                <TouchableOpacity onPress = {this.handleGamePress}>
+                                    <ImageBackground style = {styles.menuButton}
+                                     source = {{uri: 'https://codehs.com/uploads/a14f406f362b90f79f3a474c0afd3826'}}>
+                                        <View>
+                                            <Text style = {styles.menuButtonText}>Play</Text>
+                                        </View>
+                                    </ImageBackground>
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress = {this.handleInfoPress}>
+                                    <ImageBackground style = {styles.menuButton}
+                                     source = {{uri: 'https://codehs.com/uploads/a14f406f362b90f79f3a474c0afd3826'}}>
+                                        <View>
+                                            <Text style = {styles.menuButtonText}>Info</Text>
+                                        </View>
+                                    </ImageBackground>
+                                </TouchableOpacity>
+                            </View>
+                        </View>  
+                    </ImageBackground>
+                </View>
+                
+                <View style = {{display: this.state.gameScreen}}>
+                    <ImageBackground style = {{width: deviceWidth, height: deviceHeight}}
+                     source = {{uri: 'https://bit.ly/3hIZuCG'}}>
+                        <View>
+                            <TouchableOpacity onPress = {this.handleMenuPress}>
+                                <Image
+                                 source = {{uri: 'https://bit.ly/39CRH6S'}}
+                                 style = {styles.settingsButton}
+                                />
+                            </TouchableOpacity>
+                        </View>
+                     </ImageBackground>
+                </View>
+                
+                <View style = {{display: this.state.infoScreen}}>
+                    <ImageBackground
+                     style = {{width: deviceWidth, height: deviceHeight}}
+                     source = {{uri: 'https://bit.ly/2Dd02C5'}}
+                    >
+                        <View>
+                            <View style = {styles.row}>
+                                <TouchableOpacity onPress = {this.handleMenuPress}>
+                                    <Image
+                                     source = {{uri: 'https://bit.ly/39CRH6S'}}
+                                     style = {styles.settingsButton}
+                                    />
+                                </TouchableOpacity>
+                                <Text style = {styles.infoText}>
+                                    How to Play:
+                                </Text>
+                            </View>
+                            <View style = {styles.center}>
+                                <View style = {styles.infoContainer}>
+                                    <Text style = {styles.infoText}>
+                                        Tilt your device to move left or right. 
+                                        Use the bounce pads to get a boost.
+                                        Keep leaping until you reach outer space!
+                                    </Text>
+                                </View>
+                            </View>
+                        </View>
+                    </ImageBackground>
+                </View>
+            </View>
+		);
+	}
+}
+const styles = StyleSheet.create({
+	container: {
+        height: deviceHeight,
+        width: deviceWidth,
+    },
+    title1: {
+        fontSize: 50,
+        color: '#e3ded8',
+        fontWeight: 'bold',
+        margin: 15,
+        fontFamily: 'cursive',
+    },
+    title2: {
+        fontSize: 60,
+        color: '#0F52BA',
+        fontWeight: 'bold',
+        fontFamily: 'cursive',
+    },
+    menuButton: {
+        width: deviceWidth/2.25, 
+        height: deviceHeight/12, 
+        borderWidth: 3, 
+        borderRadius: 10,  
+        borderColor: '#c4c4c4',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 40,
+    },
+    menuButtonText: {
+        textAlign: 'center',
+        color: 'darkblue',
+        fontSize: 25,
+        fontWeight: 'bold',
+        fontFamily: 'cursive'
+    },
+    halfScreen: {
+        width: deviceWidth,
+        height: deviceHeight/2,
+        alignItems: 'center',
+    },
+    settingsButton: {
+        width: deviceWidth/6, 
+        height: deviceWidth/6, 
+        borderWidth: 3, 
+        borderRadius: 10,  
+        borderColor: '#c4c4c4',
+        alignItems: 'center',
+        justifyContent: 'center',
+        margin: deviceWidth/32,
+    },
+    infoText: {
+        color: 'white',
+        fontSize: deviceWidth/14,
+        fontWeight: 'bold',
+        fontFamily: 'normal',
+        textAlign: 'center',
+        padding: deviceWidth/24,
+        lineHeight: deviceWidth/6,
+    },
+    infoContainer: {
+        width: deviceWidth*3/4,
+        height: deviceHeight*3/4,
+        borderColor: 'white',
+        borderWidth: 3,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: deviceWidth/12
+    },
+    center: {
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    row: {
+        flexDirection: 'row',  
+    },
+});
