@@ -1,16 +1,27 @@
 import { StatusBar } from 'expo-status-bar';
-import React from 'react';
-import { GameEngine } from 'react-native-game-engine';
-import { StyleSheet, Text, View, AppRegistry, Image, TextInput, ImageBackground, TouchableHighlight, Alert, Dimensions, ScrollView, TouchableOpacity } from 'react-native';
+import React, { Component } from 'react';
+import { StyleSheet, Text, View, AppRegistry, Image, TextInput, ImageBackground, TouchableHighlight, Alert, Dimensions, ScrollView, TouchableOpacity, Animated } from 'react-native';
 import Constants from 'expo-constants';
-let deviceHeight = Dimensions.get('window').height;
-let deviceWidth = Dimensions.get('window').width;
+import { GameEngine } from 'react-native-game-engine';
+import Matter from 'matter-js';
+let deviceHeight = Dimensions.get('screen').height;
+let deviceWidth = Dimensions.get('screen').width;
+import Player from './Player';
+import Constants2 from './Constants2';
+import { GameLoop } from './systems';
+import { Platform } from './Platform';
 export default class App extends React.Component {
-	state = {
-        menuScreen: 'block',
-        gameScreen: 'none',
-        infoScreen: 'none',
+    constructor(props) {
+        super(props);
+        this.engine = null;
+        this.state = {
+            menuScreen: 'block',
+            gameScreen: 'none',
+            infoScreen: 'none',
+            running: true, 
+        }
     }
+  
     
     handleMenuPress = () => this.setState(state => ({
         menuScreen: 'block',
@@ -27,92 +38,61 @@ export default class App extends React.Component {
         gameScreen: 'none',
         infoScreen: 'block',
     }));
-	render() {
-		return (
-			<View style={styles.container}>
-				<Text>Open up App.js to start working on your app!</Text>
-				<StatusBar style="auto" />
-				<View style = {{display: this.state.menuScreen}}>
-                    <ImageBackground style = {{width: deviceWidth, height: deviceHeight}}
-                     source = {{uri: 'https://codehs.com/uploads/a39a9892b554ddd78871948d628ccdec'}}
-                    >
-                        <View>
-                            <View style = {styles.halfScreen}>
-                                <Text style = {styles.title1}>Leap</Text>
-                                <Text style = {styles.title2}>2</Text>
-                                <Text style = {styles.title1}>Space</Text>
-                            </View>
-                            <View style = {styles.halfScreen}>
-                                <TouchableOpacity onPress = {this.handleGamePress}>
-                                    <ImageBackground style = {styles.menuButton}
-                                     source = {{uri: 'https://codehs.com/uploads/a14f406f362b90f79f3a474c0afd3826'}}>
-                                        <View>
-                                            <Text style = {styles.menuButtonText}>Play</Text>
-                                        </View>
-                                    </ImageBackground>
-                                </TouchableOpacity>
-                                <TouchableOpacity onPress = {this.handleInfoPress}>
-                                    <ImageBackground style = {styles.menuButton}
-                                     source = {{uri: 'https://codehs.com/uploads/a14f406f362b90f79f3a474c0afd3826'}}>
-                                        <View>
-                                            <Text style = {styles.menuButtonText}>Info</Text>
-                                        </View>
-                                    </ImageBackground>
-                                </TouchableOpacity>
-                            </View>
-                        </View>  
-                    </ImageBackground>
-                </View>
-                
-                <View style = {{display: this.state.gameScreen}}>
-                    <ImageBackground style = {{width: deviceWidth, height: deviceHeight}}
-                     source = {{uri: 'https://bit.ly/3hIZuCG'}}>
-                        <View>
-                            <TouchableOpacity onPress = {this.handleMenuPress}>
-                                <Image
-                                 source = {{uri: 'https://bit.ly/39CRH6S'}}
-                                 style = {styles.settingsButton}
-                                />
-                            </TouchableOpacity>
-                        </View>
-                     </ImageBackground>
-                </View>
-                
-                <View style = {{display: this.state.infoScreen}}>
-                    <ImageBackground
-                     style = {{width: deviceWidth, height: deviceHeight}}
-                     source = {{uri: 'https://bit.ly/2Dd02C5'}}
-                    >
-                        <View>
-                            <View style = {styles.row}>
-                                <TouchableOpacity onPress = {this.handleMenuPress}>
-                                    <Image
-                                     source = {{uri: 'https://bit.ly/39CRH6S'}}
-                                     style = {styles.settingsButton}
-                                    />
-                                </TouchableOpacity>
-                                <Text style = {styles.infoText}>
-                                    How to Play:
-                                </Text>
-                            </View>
-                            <View style = {styles.center}>
-                                <View style = {styles.infoContainer}>
-                                    <Text style = {styles.infoText}>
-                                        Tilt your device to move left or right. 
-                                        Use the bounce pads to get a boost.
-                                        Keep leaping until you reach outer space!
-                                    </Text>
-                                </View>
-                            </View>
-                        </View>
-                    </ImageBackground>
-                </View>
+    onEvent = (e) => {
+        if(e.type === "game-over"){
+            this.setState({
+                running: false,
+            });
+            Alert.alert("Game Over");
+        }
+    }
+    reset = () => {
+        this.engine.swap({
+            player: { position: [0,0], xSpeed: 0, ySpeed: 3, bounce: 5, updateFrequency: 5, size: deviceWidth/8, renderer: <Player />  },
+            platform: { position: [Math.floor(Math.random()*deviceWidth), Constants.PLATFORM_Y_POSITION], width: 80, height: 10, 
+                        isVisible: true, isUnder: false, renderer: <Platform /> },
+        });
+        this.setState({
+            running: true,
+            menuScreen: 'none',
+            gameScreen: 'block',
+            infoScreen: 'none',
+        });
+    }
+
+    render() {
+        return (
+            <View style={styles.container}>
+                <GameEngine
+                    ref = {(ref) => { this.engine = ref }}
+                    style = {{width: deviceWidth, height: deviceHeight, flex: null, backgroundColor: 'blue'}}
+                    entities = {{
+                        player: { position: [0,0], xSpeed: 0, ySpeed: 3, bounce: 5, updateFrequency: 5, size: deviceWidth/8, renderer: <Player />  },
+                        platform: { position: [Math.floor(Math.random()*deviceWidth), Constants.PLATFORM_Y_POSITION], width: 80, height: 10, 
+                                    isVisible: true, isUnder: false, renderer: <Platform /> },
+                        fallChecker: { position: [deviceWidth/2, deviceHeight/10], fcWidth: deviceWidth , fcHeight: 2, renderer: <FallChecker />}
+                    }}
+                    running = {this.state.running}
+                    onEvent = {this.onEvent}
+                />
+
+                //Move left and right buttons because adding swiping and tilting is a pain
+                <View style = {styles.row}>
+                <TouchableOpacity onPress = {() => {this.engine.dispatch({type: 'move-left'})}}>
+                    <View style = {styles.controlsButton}></View>
+                </TouchableOpacity>
+                <TouchableOpacity onPress = {() => {this.engine.dispatch({type: 'move-right'})}}>
+                    <View style = {styles.controlsButton}></View>
+                </TouchableOpacity>
             </View>
-		);
-	}
+                
+            </View>
+        );
+    }
 }
+
 const styles = StyleSheet.create({
-	container: {
+  container: {
         height: deviceHeight,
         width: deviceWidth,
     },
@@ -121,13 +101,13 @@ const styles = StyleSheet.create({
         color: '#e3ded8',
         fontWeight: 'bold',
         margin: 15,
-        fontFamily: 'cursive',
+        
     },
     title2: {
         fontSize: 60,
         color: '#0F52BA',
         fontWeight: 'bold',
-        fontFamily: 'cursive',
+        
     },
     menuButton: {
         width: deviceWidth/2.25, 
@@ -144,7 +124,7 @@ const styles = StyleSheet.create({
         color: 'darkblue',
         fontSize: 25,
         fontWeight: 'bold',
-        fontFamily: 'cursive'
+        
     },
     halfScreen: {
         width: deviceWidth,
@@ -165,7 +145,7 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: deviceWidth/14,
         fontWeight: 'bold',
-        fontFamily: 'normal',
+        
         textAlign: 'center',
         padding: deviceWidth/24,
         lineHeight: deviceWidth/6,
@@ -186,4 +166,14 @@ const styles = StyleSheet.create({
     row: {
         flexDirection: 'row',  
     },
+    controlsButton: {
+        width: deviceWidth/9, 
+        height: deviceWidth/9, 
+        borderWidth: 3, 
+        borderRadius: 8,  
+        borderColor: '#c4c4c4',
+        alignItems: 'center',
+        justifyContent: 'center',
+        margin: deviceWidth/32,
+    }
 });
